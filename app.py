@@ -3,13 +3,15 @@ from flask_pymongo import PyMongo
 import json
 from pymongo.collection import Collection, ReturnDocument
 from datetime import datetime
-import os
+import os, flask
 from pymongo.errors import DuplicateKeyError
 from models.model import User
 from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
+
+BASE_URL = "/api/v1"
 
 app = Flask(__name__)
 
@@ -32,23 +34,40 @@ def resource_not_found(e):
     """
     return jsonify(error=f"Duplicate key error."), 400
 
-@app.route("/")
+@app.route(f"{BASE_URL}/")
 def health_check():
     return Response(response=json.dumps({"message": "server is up and running"}),
                     status=200,
                     mimetype='application/json')
 
 
-@app.route("/users/", methods=["GET", "POST"])
+@app.route(f"{BASE_URL}/users/", methods=["GET", "POST"])
 def get_users():
-
     if request.method == "GET":
-        users = user_collection.find({})
-        user = [ {item: data[item] for item in data if item != '_id'} for data in users ]
-        print(user)
+        
+        users = user_collection.find()
+        user = [ {item: str(data[item]) for item in data if item != '_id'} for data in users ]
         return Response(response=json.dumps(user),
                         status=200,
                         mimetype='application/json')
+        
+        # except:
+        #     flask.abort(400, "Not Found")
+    
+
+    elif request.method == "POST":
+        try:
+            payload = request.get_json()
+            payload["created_date"] = datetime.utcnow()
+            response = user_collection.insert_one(payload)
+            output = {'message': 'Successfully Inserted','Document_ID': str(response.inserted_id)}
+
+            return Response(response=json.dumps(output),
+                            status=201,
+                            mimetype='application/json')
+
+        except:
+            flask.abort(301, "Insertion failed")
 
 
 if __name__ == "__main__":
