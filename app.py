@@ -17,6 +17,20 @@ app.config["MONGO_URI"] = os.getenv("DB_URI")
 mongodb_client = PyMongo(app)
 user_collection = mongodb_client.db.users
 
+@app.errorhandler(404)
+def resource_not_found(e):
+    """
+    An error-handler to ensure that 404 errors are returned as JSON.
+    """
+    return jsonify(error=str(e)), 404
+
+
+@app.errorhandler(DuplicateKeyError)
+def resource_not_found(e):
+    """
+    An error-handler to ensure that MongoDB duplicate key errors are returned as JSON.
+    """
+    return jsonify(error=f"Duplicate key error."), 400
 
 @app.route("/")
 def health_check():
