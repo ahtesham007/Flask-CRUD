@@ -41,8 +41,10 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Endpoint      Methods                 Rule
-------------  ----------------------  -----------------------
-health_check  GET                     /api/v1/
-static        GET                     /static/<path:filename>
-users_api     DELETE, GET, POST, PUT  /api/v1/users/
+---
+
+#### List of User Routes
+| Details | Endpoint | Endpoint | 
+| --- | --- | --- |
+|health_check | GET | /api/v1/|
+|users_api |    DELETE, GET, POST, PUT | /api/v1/users/|
