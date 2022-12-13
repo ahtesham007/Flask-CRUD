@@ -1,13 +1,11 @@
-from flask import Flask, Response, request, url_for, jsonify
+from flask import Flask, Response, request, jsonify
 from flask_pymongo import PyMongo
 import json
-from pymongo.collection import Collection, ReturnDocument
+import os
+import flask
 from datetime import datetime
-import os, flask
 from pymongo.errors import DuplicateKeyError
-from models.model import User
 from dotenv import load_dotenv
-from fastapi.encoders import jsonable_encoder
 
 load_dotenv()
 
@@ -18,6 +16,7 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("DB_URI")
 mongodb_client = PyMongo(app)
 user_collection = mongodb_client.db.users
+
 
 @app.errorhandler(404)
 def resource_not_found(e):
@@ -34,6 +33,7 @@ def resource_not_found(e):
     """
     return jsonify(error=f"Duplicate key error."), 400
 
+
 @app.route(f"{BASE_URL}/")
 def health_check():
     return Response(response=json.dumps({"message": "server is up and running"}),
@@ -41,26 +41,27 @@ def health_check():
                     mimetype='application/json')
 
 
-@app.route(f"{BASE_URL}/users/", methods=["GET", "POST"])
-def get_users():
+@app.route(f"{BASE_URL}/users/", methods=["GET", "POST", "PUT", "DELETE"])
+def users_api():
     if request.method == "GET":
-        
-        users = user_collection.find()
-        user = [ {item: str(data[item]) for item in data if item != '_id'} for data in users ]
-        return Response(response=json.dumps(user),
-                        status=200,
-                        mimetype='application/json')
-        
-        # except:
-        #     flask.abort(400, "Not Found")
-    
+        try:
+            users = user_collection.find()
+            user = [{item: str(data[item])
+                     for item in data if item != '_id'} for data in users]
+            return Response(response=json.dumps(user),
+                            status=200,
+                            mimetype='application/json')
+
+        except:
+            flask.abort(400, "Not Found")
 
     elif request.method == "POST":
         try:
             payload = request.get_json()
             payload["created_date"] = datetime.utcnow()
             response = user_collection.insert_one(payload)
-            output = {'message': 'Successfully Inserted','Document_ID': str(response.inserted_id)}
+            output = {'message': 'Successfully Inserted',
+                      'Document_ID': str(response.inserted_id)}
 
             return Response(response=json.dumps(output),
                             status=201,
@@ -69,7 +70,36 @@ def get_users():
         except:
             flask.abort(301, "Insertion failed")
 
+    elif request.method == "PUT":
+
+        try:
+            payload = request.get_json()
+            payload["data"]["updated_date"] = datetime.utcnow()
+            updated_data = {"$set": payload['data']}
+            filt = payload["filter"]
+            response = user_collection.update_one(filt, updated_data)
+            output = {'message': 'Successfully Updated' if response.modified_count >
+                      0 else "Nothing was updated."}
+            return Response(response=json.dumps(output),
+                            status=202,
+                            mimetype='application/json')
+
+        except:
+            flask.abort(204, "No Content")
+
+    elif request.method == "DELETE":
+        try:
+            filt = payload["filter"]
+            response = user_collection.delete_one(filt)
+            output = {'message': 'Successfully Deleted' if response.deleted_count >
+                      0 else "Document not found."}
+            return Response(response=json.dumps(output),
+                            status=200,
+                            mimetype='application/json')
+
+        except:
+            flask.abort(204, "No Content")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=5001)
-    
