@@ -85,10 +85,12 @@ def users_api():
                             mimetype='application/json')
 
         except:
-            flask.abort(204, "No Content")
+            flask.abort(403, "No Content")
 
     elif request.method == "DELETE":
         try:
+
+            payload = request.get_json()
             filt = payload["filter"]
             response = user_collection.delete_one(filt)
             output = {'message': 'Successfully Deleted' if response.deleted_count >
@@ -98,7 +100,7 @@ def users_api():
                             mimetype='application/json')
 
         except:
-            flask.abort(204, "No Content")
+            flask.abort(500, "Internal Server Error")
 
 
 if __name__ == "__main__":
