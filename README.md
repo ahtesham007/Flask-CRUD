@@ -1,5 +1,6 @@
 # Flask-CRUD
-This Flask-CRUD is starter project.
+This Flask-CRUD is a starter project.
+
 <p align="center">
   <img width="340" height="160" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzB7glM7nIcpVbI9_-Jy5VbnDqTCWQ-Ve9Pw&usqp=CAU">
 </p>
