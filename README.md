@@ -42,6 +42,11 @@ pip install -r requirements.txt
 python app.py
 ```
 
+6. Test the app
+
+```bash
+pytest
+```
 ---
 
 #### List of User Routes
