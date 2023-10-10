@@ -1,5 +1,5 @@
 from flask import Flask, Response, request, jsonify
-from flask_pymongo import PyMongo
+from flask_pymongo import PyMongo, ObjectId
 import json
 import os
 import flask
@@ -76,8 +76,9 @@ def users_api():
             payload = request.get_json()
             payload["data"]["updated_date"] = datetime.utcnow()
             updated_data = {"$set": payload['data']}
-            filt = payload["filter"]
-            response = user_collection.update_one(filt, updated_data)
+            user_id = payload["id"]
+            user_id_obj = ObjectId(user_id)
+            response = user_collection.update_one({"_id": user_id_obj}, updated_data)
             output = {'message': 'Successfully Updated' if response.modified_count >
                       0 else "Nothing was updated."}
             return Response(response=json.dumps(output),
