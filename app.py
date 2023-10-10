@@ -92,8 +92,9 @@ def users_api():
         try:
 
             payload = request.get_json()
-            filt = payload["filter"]
-            response = user_collection.delete_one(filt)
+            user_id = payload["id"]
+            user_id_obj = ObjectId(user_id)
+            response = user_collection.delete_one({"_id":user_id_obj})
             output = {'message': 'Successfully Deleted' if response.deleted_count >
                       0 else "Document not found."}
             return Response(response=json.dumps(output),

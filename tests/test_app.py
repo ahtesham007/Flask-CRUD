@@ -39,10 +39,16 @@ def test_update_user(client):
             "email": "test@gmail.com"
         },
         "id": "6524e6c4e2d53767025e0e1e"
-
     }
 
     response = client.put(f'{BASE_URI}/users/', json=user_data)
 
     assert response.status_code == 202
     assert b'{"message": "Successfully Updated"}' in response.data
+
+def test_update_user_negative(client):
+    user_data = {}
+
+    response = client.put(f'{BASE_URI}/users/', json=user_data)
+
+    assert response.status_code == 403
